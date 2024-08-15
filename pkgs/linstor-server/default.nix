@@ -1,0 +1,75 @@
+{
+  stdenv,
+  fetchFromGitHub,
+  gradle,
+  protobuf,
+  git,
+  python3,
+  makeWrapper,
+  jre,
+}:
+
+let
+  self = stdenv.mkDerivation (finalAttrs: {
+    pname = "linstor-server";
+    version = "1.29.0";
+
+    src = fetchFromGitHub {
+      owner = "LINBIT";
+      repo = "linstor-server";
+      rev = "v${finalAttrs.version}";
+      hash = "sha256-Dy+3kzfw3y1LhYa7+sGv4YmNeP4ao4NfXUA2dFgzsJE=";
+      fetchSubmodules = true;
+      leaveDotGit = true;
+    };
+
+    patches = [ ./build.patch ];
+
+    nativeBuildInputs = [
+      gradle
+      protobuf
+      git
+      python3
+      makeWrapper
+    ];
+
+    buildInputs = [ protobuf ];
+
+    gradleBuildTask = "installDist";
+
+    preBuild = ''
+      VERSION="${finalAttrs.version}" make versioninfo
+    '';
+
+    mitmCache = gradle.fetchDeps {
+      pkg = self;
+      data = ./deps.json;
+    };
+
+    gradleFlags = [ "-Dfile.encoding=utf-8" ];
+
+    doCheck = false;
+
+    installPhase = ''
+      mkdir -p $out/bin
+      mkdir -p $out/lib/conf
+      cp -r build/install/linstor-server/lib/* $out/lib/
+      cp server/logback.xml $out/lib/conf/
+      makeWrapper ${jre}/bin/java $out/bin/linstor-controller \
+      --add-flags "-Xms32M -classpath $out/lib/conf:$out/lib/* com.linbit.linstor.core.Controller"
+
+      makeWrapper ${jre}/bin/java $out/bin/linstor-satellite \
+      --add-flags "-Xms32M -classpath $out/lib/conf:$out/lib/* com.linbit.linstor.core.Satellite"
+
+
+    '';
+
+    # installPhase = ''
+    #   mkdir -p $out
+    #   cp -r * $out
+    # '';
+
+  });
+
+in
+self
