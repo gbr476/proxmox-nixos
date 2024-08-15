@@ -1,4 +1,5 @@
 {
+  lib,
   stdenv,
   fetchFromGitHub,
   gradle,
@@ -7,6 +8,19 @@
   python3,
   makeWrapper,
   jre,
+  bashInteractive,
+  coreutils,
+  cryptsetup,
+  drbd,
+  gnugrep,
+  kmod,
+  lsscsi,
+  lvm2,
+  mount,
+  systemdMinimal,
+  thin-provisioning-tools,
+  util-linux,
+  zfs,
 }:
 
 let
@@ -24,6 +38,9 @@ let
     };
 
     patches = [ ./build.patch ];
+    postPatch = ''
+      find . -type f -name "*.java" -exec sed -i {} -e "s|/bin/bash|${bashInteractive}/bin/bash|g" \;
+    '';
 
     nativeBuildInputs = [
       gradle
@@ -59,16 +76,24 @@ let
       --add-flags "-Xms32M -classpath $out/lib/conf:$out/lib/* com.linbit.linstor.core.Controller"
 
       makeWrapper ${jre}/bin/java $out/bin/linstor-satellite \
-      --add-flags "-Xms32M -classpath $out/lib/conf:$out/lib/* com.linbit.linstor.core.Satellite"
-
-
+        --add-flags "-Xms32M -classpath $out/lib/conf:$out/lib/* com.linbit.linstor.core.Satellite" \
+        --prefix PATH : ${
+          lib.makeBinPath [
+            coreutils
+            cryptsetup
+            drbd
+            gnugrep
+            kmod
+            lsscsi
+            lvm2
+            mount
+            systemdMinimal
+            thin-provisioning-tools
+            util-linux
+            zfs
+          ]
+        }
     '';
-
-    # installPhase = ''
-    #   mkdir -p $out
-    #   cp -r * $out
-    # '';
-
   });
 
 in
