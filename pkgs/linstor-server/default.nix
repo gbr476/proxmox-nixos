@@ -9,6 +9,7 @@
   makeWrapper,
   jre,
   bashInteractive,
+  bcache-tools,
   coreutils,
   cryptsetup,
   drbd,
@@ -17,6 +18,7 @@
   lsscsi,
   lvm2,
   mount,
+  nvme-cli,
   systemdMinimal,
   thin-provisioning-tools,
   util-linux,
@@ -73,12 +75,10 @@ let
       cp -r build/install/linstor-server/lib/* $out/lib/
       cp server/logback.xml $out/lib/conf/
       makeWrapper ${jre}/bin/java $out/bin/linstor-controller \
-      --add-flags "-Xms32M -classpath $out/lib/conf:$out/lib/* com.linbit.linstor.core.Controller"
-
-      makeWrapper ${jre}/bin/java $out/bin/linstor-satellite \
-        --add-flags "-Xms32M -classpath $out/lib/conf:$out/lib/* com.linbit.linstor.core.Satellite" \
+        --add-flags "-Xms32M -classpath $out/lib/conf:$out/lib/* com.linbit.linstor.core.Controller" \
         --prefix PATH : ${
           lib.makeBinPath [
+            bcache-tools
             coreutils
             cryptsetup
             drbd
@@ -87,6 +87,28 @@ let
             lsscsi
             lvm2
             mount
+            nvme-cli
+            systemdMinimal
+            thin-provisioning-tools
+            util-linux
+            zfs
+          ]
+        }
+
+      makeWrapper ${jre}/bin/java $out/bin/linstor-satellite \
+        --add-flags "-Xms32M -classpath $out/lib/conf:$out/lib/* com.linbit.linstor.core.Satellite" \
+        --prefix PATH : ${
+          lib.makeBinPath [
+            bcache-tools
+            coreutils
+            cryptsetup
+            drbd
+            gnugrep
+            kmod
+            lsscsi
+            lvm2
+            mount
+            nvme-cli
             systemdMinimal
             thin-provisioning-tools
             util-linux
