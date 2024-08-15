@@ -45,9 +45,16 @@
           in
           {
             overlays =
-              final: _:
+              final: prev:
               (import ./pkgs { inherit pkgs pkgs-unstable craneLib; })
               // {
+                pacemaker = prev.pacemaker.overrideAttrs (_: {
+                  env.NIX_CFLAGS_COMPILE = toString (
+                    [ "-Wno-error=deprecated-declarations" ]
+                    ++ lib.optionals prev.stdenv.cc.isGNU [ "-Wno-error=strict-prototypes" ]
+                  );
+                });
+
                 nixos-proxmox-ve-iso =
                   (lib.nixosSystem {
                     extraModules = lib.attrValues self.nixosModules;
