@@ -24,6 +24,13 @@
   testScript = ''
     start_all()
 
+    pve1.wait_for_unit("pveproxy.service")
+    assert "running" in pve1.succeed("pveproxy status")
+    assert "Proxmox" in pve1.succeed("curl -k https://localhost:8006")
+
+    pve1.wait_for_unit("linstor-controller.service")
+    pve2.wait_for_unit("multi-user.target")
+
     storageCfg = """
     drbd: linstor_storage
         content images, rootdir
@@ -34,11 +41,6 @@
     pve1.succeed("cat /etc/pve/storage.cfg")
     assert "9.2" in pve1.succeed("modinfo drbd")
 
-    pve1.wait_for_unit("pveproxy.service")
-    pve1.wait_for_unit("linstor-controller.service")
-    assert "running" in pve1.succeed("pveproxy status")
-    assert "Proxmox" in pve1.succeed("curl -k https://localhost:8006")
     pve1.succeed("linstor node create pve1 192.168.0.1")
-    pve2.wait_for_unit("multi-user.target")
   '';
 }
