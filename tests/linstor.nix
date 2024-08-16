@@ -5,6 +5,12 @@
   nodes = {
     pve1 = {
       boot.kernelModules = [ "drbd" ];
+      environment.etc."pve/storage.cfg".text = ''
+        drbd: linstor_storage
+            content images, rootdir
+            controller 192.168.0.1
+            resourcegroup pve-rg
+      '';
       services.proxmox-ve = {
         enable = true;
         linstor.enable = true;
@@ -29,6 +35,7 @@
     assert "running" in pve1.succeed("pveproxy status")
     assert "Proxmox" in pve1.succeed("curl -k https://localhost:8006")
     pve1.succeed("pvecm create mycluster")
+    pve1.succeed("linstor node create pve1 192.168.0.1")
     pve1.wait_for_unit("corosync.service")
     pve2.wait_for_unit("multi-user.target")
   '';
