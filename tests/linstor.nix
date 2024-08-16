@@ -4,9 +4,12 @@
 
   nodes = {
     pve1 = {
-      services.proxmox-ve = {
-        enable = true;
-        linstor.enable = true;
+      services = {
+        proxmox-ve = {
+          enable = true;
+          linstor.enable = true;
+        };
+        lvm.enable = true;
       };
       virtualisation = {
         emptyDiskImages = [ 4096 ];
@@ -29,7 +32,7 @@
     assert "running" in pve1.succeed("pveproxy status")
     assert "Proxmox" in pve1.succeed("curl -k https://localhost:8006")
 
-    pve1.wait_for_unit("linstor-controller.service")
+    pve1.wait_for_unit("multi-user.target")
     pve2.wait_for_unit("multi-user.target")
 
     pve1.succeed("linstor node create pve1 192.168.0.1")
