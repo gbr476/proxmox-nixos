@@ -25,10 +25,10 @@
     start_all()
 
     storageCfg = """
-        drbd: linstor_storage
-            content images, rootdir
-            controller 192.168.0.1
-            resourcegroup pve-rg
+    drbd: linstor_storage
+        content images, rootdir
+        controller 192.168.0.1
+        resourcegroup pve-rg
     """
     pve1.succeed(f"echo \"{storageCfg}\" >> /etc/pve/storage.cfg")
     pve1.succeed("cat /etc/pve/storage.cfg")
