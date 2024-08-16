@@ -10,6 +10,7 @@
           linstor.enable = true;
         };
         lvm.enable = true;
+        lvm.dmeventd.enable = true;
       };
       virtualisation = {
         emptyDiskImages = [ 4096 ];
